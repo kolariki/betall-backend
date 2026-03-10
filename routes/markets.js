@@ -109,7 +109,21 @@ router.get('/proposals', requireAuth, requireAdmin, async (req, res) => {
 
     const { data, error } = await query;
     if (error) throw error;
-    res.json(data || []);
+
+    // Enrich with user emails
+    const userIds = [...new Set((data || []).map(p => p.proposed_by).filter(Boolean))];
+    const emailMap = {};
+    if (userIds.length > 0) {
+      const { data: { users } } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+      (users || []).forEach(u => { emailMap[u.id] = u.email; });
+    }
+
+    const enriched = (data || []).map(p => ({
+      ...p,
+      user_email: emailMap[p.proposed_by] || 'anónimo',
+    }));
+
+    res.json(enriched);
   } catch (error) {
     console.error('List proposals error:', error);
     res.status(500).json({ error: 'Error al obtener propuestas' });
