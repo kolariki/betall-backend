@@ -9,16 +9,19 @@ const router = Router();
 // GET /api/markets
 router.get('/', optionalAuth, async (req, res) => {
   try {
-    const { status, category, sort } = req.query;
+    const { status, category, sort, include_closed } = req.query;
 
     let query = supabase
       .from('markets')
       .select('*');
 
-    if (status) {
+    if (status === 'all') {
+      // No filter — admin use
+    } else if (include_closed === 'true') {
+      query = query.in('status', ['open', 'closed']);
+    } else if (status) {
       query = query.eq('status', status);
     } else {
-      // By default, only show open markets (hide closed/resolved)
       query = query.eq('status', 'open');
     }
 

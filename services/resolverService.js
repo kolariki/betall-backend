@@ -10,13 +10,39 @@ function startResolver() {
   console.log('[Resolver] Scheduled — runs every 30 minutes');
 }
 
+async function closeExpiredMarkets() {
+  try {
+    const now = new Date().toISOString();
+    const { data: toClose, error } = await supabase
+      .from('markets')
+      .select('id, question')
+      .eq('status', 'open')
+      .lte('closes_at', now);
+
+    if (error) { console.error('[Resolver] Close check error:', error.message); return; }
+    if (!toClose || toClose.length === 0) return;
+
+    for (const m of toClose) {
+      const { error: upErr } = await supabase
+        .from('markets')
+        .update({ status: 'closed' })
+        .eq('id', m.id);
+      if (upErr) console.error(`[Resolver] Failed to close #${m.id}:`, upErr.message);
+      else console.log(`[Resolver] Closed #${m.id}: ${m.question}`);
+    }
+  } catch (err) { console.error('[Resolver] Close fatal:', err.message); }
+}
+
 async function resolveMarkets() {
   try {
+    // First close expired markets
+    await closeExpiredMarkets();
+
     const now = new Date().toISOString();
     const { data: markets, error } = await supabase
       .from('markets')
       .select('*')
-      .eq('status', 'open')
+      .eq('status', 'closed')
       .lte('resolves_at', now)
       .neq('resolution_type', 'manual');
 
