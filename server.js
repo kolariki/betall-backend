@@ -17,7 +17,19 @@ const PORT = process.env.PORT || 3001;
 app.use('/api/stripe/webhook', express.raw({ type: 'application/json' }), stripeWebhookRoutes);
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: function(origin, cb) {
+    const allowed = [
+      'https://betall.online',
+      'https://www.betall.online',
+      'http://localhost:5173',
+      'http://localhost:5174',
+    ];
+    if (!origin || allowed.includes(origin)) return cb(null, origin);
+    cb(null, origin); // Allow all for now, tighten later
+  },
+  credentials: true,
+}));
 app.use(express.json());
 
 // Request logging
