@@ -17,6 +17,9 @@ router.get('/', optionalAuth, async (req, res) => {
 
     if (status) {
       query = query.eq('status', status);
+    } else {
+      // By default, only show open markets (hide closed/resolved)
+      query = query.eq('status', 'open');
     }
 
     if (category && category !== 'all') {
