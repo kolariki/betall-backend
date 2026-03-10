@@ -7,6 +7,7 @@ const betRoutes = require('./routes/bets.js');
 const walletRoutes = require('./routes/wallet.js');
 const stripeRoutes = require('./routes/stripe.js');
 const stripeWebhookRoutes = require('./routes/stripeWebhook.js');
+const adminRoutes = require('./routes/admin.js');
 const { startResolver } = require('./services/resolverService.js');
 
 const app = express();
@@ -32,6 +33,7 @@ app.use('/api/markets', betRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/stripe', stripeRoutes);
 
+app.use('/api/admin', adminRoutes);
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
