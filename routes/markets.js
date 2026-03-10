@@ -102,7 +102,7 @@ router.get('/proposals', requireAuth, requireAdmin, async (req, res) => {
     const { status } = req.query;
     let query = supabase
       .from('market_proposals')
-      .select('*, profiles(username)')
+      .select('*')
       .order('created_at', { ascending: false });
 
     if (status) query = query.eq('status', status);
